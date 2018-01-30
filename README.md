@@ -20,7 +20,7 @@ docker-machine ls
 
 Creating the cluster
 ```
-eval "$(docker-machine env swarm-1)"
+eval "$(docker-machine env manager-node)"
 
 docker swarm init --advertise-addr $(docker-machine ip manager-node)
 ```
@@ -28,6 +28,7 @@ docker swarm init --advertise-addr $(docker-machine ip manager-node)
 ## Adding the visualizer service
 ```
 eval "$(docker-machine env manager-node)"
+
 docker service create \
   --name=visualizer \
   --publish=8000:8080/tcp \
@@ -43,7 +44,7 @@ explorer http://$(docker-machine ip manager-node):8000
 eval "$(docker-machine env manager-node)"
 JOIN_TOKEN=$(docker swarm join-token -q worker)
 
-for i in 2 3; do
+for i in 1 2; do
     eval "$(docker-machine env worker-node-$i)"
 
     docker swarm join --token $JOIN_TOKEN \
@@ -142,17 +143,3 @@ docker node ls
 docker node update --availability=active worker-node-2
 ```
 
-## Docker system info
-```
-docker system info
-```
-
-## Docker and disk?
-```
-docker system df
-```
-
-## Docker clean up
-```
-docker system prune
-```
