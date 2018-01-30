@@ -128,6 +128,10 @@ docker service update \
   docker-routing-mesh
 ```
 
+```
+curl http://$(docker-machine ip manager-node):8080
+```
+
 ## Drain a node
 ```
 docker node update --availability=drain worker-node-2
