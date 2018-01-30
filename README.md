@@ -41,7 +41,7 @@ docker service create \
   --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
   dockersamples/visualizer
 
-open http://$(docker-machine ip swarm-1):8000
+explorer http://$(docker-machine ip swarm-1):8000
 ```
 
 ## Adding workers to the cluster
@@ -77,7 +77,7 @@ docker service create \
   --publish=8080:8080/tcp \
   --network routing-mesh \
   --reserve-memory 20m \
-  albertogviana/docker-routing-mesh:1.0.0
+  lanovoy/docker-swarm-presentation:1.0
 ```
 
 ## Testing the service
@@ -94,7 +94,7 @@ docker service scale docker-routing-mesh=3
 
 ## Calling a service
 ```
-while true; do curl http://$(docker-machine ip swarm-1):8080; sleep 1; echo "\n";  done
+while true; do curl http://$(docker-machine ip swarm-1):8080; sleep 1; printf "\n";  done
 ```
 
 ## Rolling updates
@@ -103,7 +103,7 @@ eval "$(docker-machine env swarm-1)"
 docker service update \
   --update-failure-action pause \
   --update-parallelism 1 \
-  --image albertogviana/docker-routing-mesh:2.0.0 \
+  --image lanovoy/docker-swarm-presentation:2.0 \
   docker-routing-mesh
 ```
 
@@ -114,7 +114,7 @@ while true; do curl http://$(docker-machine ip swarm-1):8080/health; sleep 1; ec
 
 ## Docker secret create
 ```
-echo test | docker secret create my_secret -
+echo my-very-secret-value | docker secret create my_secret -
 ```
 
 ## Docker secret ls
@@ -129,7 +129,7 @@ docker service update \
   --update-failure-action pause \
   --update-parallelism 1 \
   --secret-add my_secret \
-  --image albertogviana/docker-routing-mesh:2.0.0 \
+  --image lanovoy/docker-swarm-presentation:2.0 \
   docker-routing-mesh
 ```
 
