@@ -1,13 +1,15 @@
 # Docker Swarm Presentation
 
 ## Presentation
-[Slides](http://www.slideshare.net/albertogviana/docker-swarm-71804647)
+[Slides](http://www.slideshare.net/albertogviana/docker-SalesPortalSPA71804647)
 
 
 ## Building a docker swarm cluster
 ```
-for i in 1 2 3; do
-    docker-machine create -d virtualbox swarm-$i
+docker-machine create -d virtualbox manager-node
+
+for i in 1 2; do
+    docker-machine create -d virtualbox worker-node-$i
 done
 ```
 
@@ -16,24 +18,16 @@ Checking my machines
 docker-machine ls
 ```
 
-The output is
-```
-NAME      ACTIVE   DRIVER       STATE     URL                         SWARM   DOCKER    ERRORS
-swarm-1   -        virtualbox   Running   tcp://192.168.99.100:2376           v1.13.0
-swarm-2   -        virtualbox   Running   tcp://192.168.99.101:2376           v1.13.0
-swarm-3   -        virtualbox   Running   tcp://192.168.99.102:2376           v1.13.0
-```
-
 Creating the cluster
 ```
 eval "$(docker-machine env swarm-1)"
 
-docker swarm init --advertise-addr $(docker-machine ip swarm-1)
+docker swarm init --advertise-addr $(docker-machine ip manager-node)
 ```
 
 ## Adding the visualizer service
 ```
-eval "$(docker-machine env swarm-1)"
+eval "$(docker-machine env manager-node)"
 docker service create \
   --name=visualizer \
   --publish=8000:8080/tcp \
@@ -41,37 +35,37 @@ docker service create \
   --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
   dockersamples/visualizer
 
-explorer http://$(docker-machine ip swarm-1):8000
+explorer http://$(docker-machine ip manager-node):8000
 ```
 
 ## Adding workers to the cluster
 ```
-eval "$(docker-machine env swarm-1)"
+eval "$(docker-machine env manager-node)"
 JOIN_TOKEN=$(docker swarm join-token -q worker)
 
 for i in 2 3; do
-    eval "$(docker-machine env swarm-$i)"
+    eval "$(docker-machine env worker-node-$i)"
 
     docker swarm join --token $JOIN_TOKEN \
-        --advertise-addr $(docker-machine ip swarm-$i) \
-        $(docker-machine ip swarm-1):2377
+        --advertise-addr $(docker-machine ip worker-node-$i) \
+        $(docker-machine ip manager-node):2377
 done
 ```
 
 ```
-eval "$(docker-machine env swarm-1)"
+eval "$(docker-machine env manager-node)"
 docker node ls
 ```
 
 ## Creating network
 ```
-eval "$(docker-machine env swarm-1)"
+eval "$(docker-machine env manager-node)"
 docker network create -d overlay routing-mesh
 ```
 
 ## Deploy a new service
 ```
-eval "$(docker-machine env swarm-1)"
+eval "$(docker-machine env manager-node)"
 docker service create \
   --name=docker-routing-mesh \
   --publish=8080:8080/tcp \
@@ -82,9 +76,9 @@ docker service create \
 
 ## Testing the service
 ```
-curl http://$(docker-machine ip swarm-1):8080
-curl http://$(docker-machine ip swarm-2):8080
-curl http://$(docker-machine ip swarm-3):8080
+curl http://$(docker-machine ip manager-node):8080
+curl http://$(docker-machine ip worker-node-1):8080
+curl http://$(docker-machine ip worker-node-2):8080
 ```
 
 ## Scaling a service
@@ -94,12 +88,12 @@ docker service scale docker-routing-mesh=3
 
 ## Calling a service
 ```
-while true; do curl http://$(docker-machine ip swarm-1):8080; sleep 1; printf "\n";  done
+while true; do curl http://$(docker-machine ip manager-node):8080; sleep 1; printf "\n";  done
 ```
 
 ## Rolling updates
 ```
-eval "$(docker-machine env swarm-1)"
+eval "$(docker-machine env manager-node)"
 docker service update \
   --update-failure-action pause \
   --update-parallelism 1 \
@@ -109,7 +103,7 @@ docker service update \
 
 ## Calling a service
 ```
-while true; do curl http://$(docker-machine ip swarm-1):8080/health; sleep 1; echo "\n";  done
+while true; do curl http://$(docker-machine ip manager-node):8080/health; sleep 1; printf "\n";  done
 ```
 
 ## Docker secret create
@@ -124,7 +118,7 @@ docker secret ls
 
 ## Deploy my secret
 ```
-eval "$(docker-machine env swarm-1)"
+eval "$(docker-machine env manager-node)"
 docker service update \
   --update-failure-action pause \
   --update-parallelism 1 \
@@ -135,7 +129,7 @@ docker service update \
 
 ## Drain a node
 ```
-docker node update --availability=drain swarm-3
+docker node update --availability=drain worker-node-2
 ```
 
 ## Listing nodes
@@ -145,7 +139,7 @@ docker node ls
 
 ## Bring the node back
 ```
-docker node update --availability=active swarm-3
+docker node update --availability=active worker-node-2
 ```
 
 ## Docker system info
