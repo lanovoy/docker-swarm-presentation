@@ -137,6 +137,10 @@ docker service update \
 curl http://$(docker-machine ip manager):8080
 ```
 
+```
+docker exec $(docker ps --filter name=docker-routing-mesh -q) ls -l /run/secrets
+```
+
 ## Drain a node
 ```
 docker node update --availability=drain worker-2
