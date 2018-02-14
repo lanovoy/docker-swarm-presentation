@@ -1,7 +1,7 @@
 # Docker Swarm Presentation
 
 ## Presentation
-[Slides](http://www.slideshare.net/albertogviana/docker-SalesPortalSPA71804647)
+[Slides](http://www.slideshare.net/albertogviana/docker-swarm-71804647)
 
 
 ## Building a docker swarm cluster
