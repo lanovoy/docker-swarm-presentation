@@ -145,6 +145,9 @@ docker exec $(docker ps --filter name=docker-routing-mesh -q) ls -l /run/secrets
 ```
 docker node update --availability=drain worker-2
 ```
+```
+while true; do curl http://$(docker-machine ip manager):8080/health; sleep 1; printf "\n";  done
+```
 
 ## Listing nodes
 ```
