@@ -34,6 +34,7 @@ docker service create \
   --publish=8000:8080/tcp \
   --constraint=node.role==manager \
   --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+  --detach=false \
   dockersamples/visualizer
 
 explorer http://$(docker-machine ip manager):8000
